@@ -1,0 +1,64 @@
+# Node.js files
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# TypeScript build output
+dist/
+*.js
+*.js.map
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.sublime-*
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Optional - Uncomment if using a package manager like Yarn
+# yarn.lock
+
+# Optional - Uncomment if using npm for package management
+# package-lock.json
+
+# Optional - Uncomment if using pnpm for package management
+# .pnpm-lock.yaml
+
+# Optional - Uncomment if using Yarn 2 (berry)
+# .yarn/cache
+
+# Optional - Uncomment if using Lerna for managing monorepos
+# lerna-debug.log
+
+# Optional - Uncomment if using ESLint
+# .eslintcache
+
+# Optional - Uncomment if using Prettier
+# .prettierignore
+
+# Optional - Uncomment if using Jest for testing
+# coverage/
+# jest.config.js
