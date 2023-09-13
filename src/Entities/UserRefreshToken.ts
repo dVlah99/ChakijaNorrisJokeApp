@@ -18,7 +18,7 @@ export class UserRefreshToken extends BaseEntity {
   refreshToken: string
 
   @Column({ unique: true })
-  userFk: string
+  userId: string
 
   @OneToOne(() => User)
   @JoinColumn()

@@ -22,12 +22,18 @@ export class UserService {
       expiresIn: '20s',
     })
     const refreshToken = jwt.sign(email, process.env.JWT_SECRET_KEY_REFRESH)
-    const newRefreshToken = new UserRefreshToken()
-    newRefreshToken.id = v4()
-    newRefreshToken.refreshToken = refreshToken
-    newRefreshToken.userFk = userFromDb.id
+    const refreshTokenFromDb = await UserRefreshToken.findOne({
+      where: { refreshToken: refreshToken },
+    })
 
-    await newRefreshToken.save()
+    if (!refreshTokenFromDb) {
+      const newRefreshToken = new UserRefreshToken()
+      newRefreshToken.id = v4()
+      newRefreshToken.refreshToken = refreshToken
+      newRefreshToken.userId = userFromDb.id
+
+      await newRefreshToken.save()
+    }
 
     res.status(201).json({ accessToken, refreshToken })
   }
@@ -63,13 +69,21 @@ export class UserService {
     res: Response,
     refreshTokenFromRequest: string
   ) => {
+    console.log('PROSLO 3')
+    const userFromDb = await UserRefreshToken.findOne({
+      relations: ['user'],
+      where: { refreshToken: refreshTokenFromRequest },
+    })
+    console.log('PROSLO 4', userFromDb.user.email)
+    const picka = userFromDb.user.email
+    console.log(picka)
     jwt.verify(
-      refreshTokenFromRequest,
+      userFromDb.refreshToken,
       process.env.JWT_SECRET_KEY_REFRESH,
       (error, user: any) => {
         if (error) return res.sendStatus(403)
         const accessToken = jwt.sign(
-          { email: user.email },
+          { email: userFromDb.user.email },
           process.env.JWT_SECRET_KEY_ACCESS,
           { expiresIn: '30s' }
         )

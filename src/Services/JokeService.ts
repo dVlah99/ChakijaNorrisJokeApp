@@ -5,14 +5,14 @@ import { JokeType } from '../Types/JokeType'
 
 export class JokeService {
   public static SendJokeToEmail = async (res: Response, req: Request) => {
+    let receiverEmail
     const jokeResponse = await fetch('https://api.chucknorris.io/jokes/random')
     if (!jokeResponse) {
       throw new Error('Failed to fetch data')
     }
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
-    const email = jwt.decode(token) as string
-    console.log('email: ', email)
+    const email = jwt.decode(token)
 
     const jokeJson = (await jokeResponse.json()) as JokeType
 
@@ -21,15 +21,15 @@ export class JokeService {
       host: 'smtp.office365.com',
       debug: true,
       auth: {
-        user: process.env.CHUNKSEMAIL,
+        user: process.env.CHUCKSEMAIL,
         pass: process.env.CHUCKSPASS,
       },
     })
 
     await transporter
       .sendMail({
-        from: process.env.CHUNKSEMAIL,
-        to: email,
+        from: process.env.CHUCKSEMAIL,
+        to: typeof email === 'string' ? email : email.email,
         subject: 'Chuck Norris Joke!',
         text: 'Please confirm your email!!!',
         html: `<p>${jokeJson.value}</p>`,
