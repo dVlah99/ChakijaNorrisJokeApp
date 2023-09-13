@@ -5,7 +5,6 @@ import { JokeType } from '../Types/JokeType'
 
 export class JokeService {
   public static SendJokeToEmail = async (res: Response, req: Request) => {
-    let receiverEmail
     const jokeResponse = await fetch('https://api.chucknorris.io/jokes/random')
     if (!jokeResponse) {
       throw new Error('Failed to fetch data')
