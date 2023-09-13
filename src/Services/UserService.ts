@@ -69,14 +69,11 @@ export class UserService {
     res: Response,
     refreshTokenFromRequest: string
   ) => {
-    console.log('PROSLO 3')
     const userFromDb = await UserRefreshToken.findOne({
       relations: ['user'],
       where: { refreshToken: refreshTokenFromRequest },
     })
-    console.log('PROSLO 4', userFromDb.user.email)
-    const picka = userFromDb.user.email
-    console.log(picka)
+
     jwt.verify(
       userFromDb.refreshToken,
       process.env.JWT_SECRET_KEY_REFRESH,

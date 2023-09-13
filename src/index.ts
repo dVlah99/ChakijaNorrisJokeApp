@@ -51,13 +51,11 @@ app.post('/login', async (req, res) => {
 app.post('/token', async (req, res) => {
   const refreshToken = req.body.token
   if (!refreshToken) return res.sendStatus(401)
-  console.log('PROSLO 1')
 
   const refreshTokenFromDb = UserRefreshToken.find({
     where: { refreshToken: refreshToken },
   })
   if (!refreshTokenFromDb) return res.sendStatus(401)
-  console.log('PROSLO 2')
 
   await UserService.Token(res, refreshToken)
 })

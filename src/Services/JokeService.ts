@@ -34,8 +34,8 @@ export class JokeService {
         text: 'Please confirm your email!!!',
         html: `<p>${jokeJson.value}</p>`,
       })
-      .then((nesto) => {
-        console.log('NESTO!', nesto)
+      .then((success) => {
+        console.log('SUCCESS!', success)
       })
       .catch((error) => {
         console.log('ERROR!', error)
