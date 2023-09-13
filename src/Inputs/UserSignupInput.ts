@@ -1,4 +1,4 @@
-export type UserInputType = {
+export type UserSignupInput = {
   firstName: string
   lastName: string
   email: string

@@ -1,6 +1,6 @@
 import { User } from '../Entities/User'
 import * as bcrypt from 'bcrypt'
-import { UserInputType } from '../Inputs/UserInput'
+import { UserSignupInput } from '../Inputs/UserSignupInput'
 import { v4 } from 'uuid'
 import * as jwt from 'jsonwebtoken'
 import { LoginInput } from '../Inputs/LoginInput'
@@ -39,7 +39,7 @@ export class UserService {
   }
 
   public static SignUp = async (
-    { firstName, lastName, email, password }: UserInputType,
+    { firstName, lastName, email, password }: UserSignupInput,
     res: Response
   ) => {
     try {
