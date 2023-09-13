@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm'
+import { User } from './User'
+import { type } from 'os'
 
 @Entity()
 export class UserRefreshToken extends BaseEntity {
@@ -8,6 +17,10 @@ export class UserRefreshToken extends BaseEntity {
   @Column()
   refreshToken: string
 
-  @Column()
+  @Column({ unique: true })
   userFk: string
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User
 }

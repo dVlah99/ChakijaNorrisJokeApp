@@ -1,4 +1,4 @@
-import express, { Request, Response, Application } from 'express'
+import { Request, Response } from 'express'
 import * as jwt from 'jsonwebtoken'
 import * as nodeMailer from 'nodemailer'
 import { JokeType } from '../Types/JokeType'

@@ -1,12 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  BaseEntity,
-  Unique,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm'
 import { IsEmail } from 'class-validator'
-import { v4 as uuid } from 'uuid'
+
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')

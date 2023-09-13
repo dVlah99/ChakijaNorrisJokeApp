@@ -18,7 +18,7 @@ export class UserService {
     if (!isPasswordValid)
       return res.status(401).json({ message: 'Invalid password' })
 
-    const accessToken = jwt.sign({email}, process.env.JWT_SECRET_KEY_ACCESS, {
+    const accessToken = jwt.sign({ email }, process.env.JWT_SECRET_KEY_ACCESS, {
       expiresIn: '20s',
     })
     const refreshToken = jwt.sign(email, process.env.JWT_SECRET_KEY_REFRESH)
@@ -71,7 +71,7 @@ export class UserService {
         const accessToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET_KEY_ACCESS,
-          {expiresIn: '30s'}
+          { expiresIn: '30s' }
         )
         res.json({ accessToken })
       }
