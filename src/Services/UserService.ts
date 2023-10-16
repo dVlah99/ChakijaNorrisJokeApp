@@ -12,7 +12,8 @@ export class UserService {
     { email, password }: LoginInput,
     res: Response
   ) => {
-    const userFromDb = await User.findOne({ where: { email } })
+    try {
+          const userFromDb = await User.findOne({ where: { email } })
     if (!userFromDb) return res.status(404).json({ message: 'User not found' })
     const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
     if (!isPasswordValid)
@@ -34,8 +35,11 @@ export class UserService {
 
       await newRefreshToken.save()
     }
-
     res.status(201).json({ accessToken, refreshToken })
+    } catch (error) {
+      console.error('Error logging in:', error)
+      res.status(500).json({ message: 'Internal server error' })
+    }
   }
 
   public static SignUp = async (
@@ -69,11 +73,11 @@ export class UserService {
     res: Response,
     refreshTokenFromRequest: string
   ) => {
-    const userFromDb = await UserRefreshToken.findOne({
+    try {
+         const userFromDb = await UserRefreshToken.findOne({
       relations: ['user'],
       where: { refreshToken: refreshTokenFromRequest },
     })
-
     jwt.verify(
       userFromDb.refreshToken,
       process.env.JWT_SECRET_KEY_REFRESH,
@@ -87,5 +91,9 @@ export class UserService {
         res.json({ accessToken })
       }
     )
+    } catch (error) {
+      console.error('Verification error: ', error)
+      res.status(500).json({ message: 'Internal server error' })
+    }
   }
 }
