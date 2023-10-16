@@ -1,26 +1,26 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  BaseEntity,
-  OneToOne,
-  JoinColumn,
+	Entity,
+	PrimaryGeneratedColumn,
+	Column,
+	BaseEntity,
+	OneToOne,
+	JoinColumn,
 } from 'typeorm'
 import { User } from './User'
-import { type } from 'os'
 
 @Entity()
 export class UserRefreshToken extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string
+    @PrimaryGeneratedColumn('uuid')
+  	id: string
 
-  @Column()
-  refreshToken: string
+    @Column()
+  	refreshToken: string
 
-  @Column({ unique: true })
-  userId: string
+    @Column({ unique: true })
+  	userId: string
 
-  @OneToOne(() => User)
-  @JoinColumn()
-  user: User
+    @OneToOne(() => User)
+    @JoinColumn()
+  	user: User
 }
