@@ -35,19 +35,20 @@ export class JokeService {
 			},
 		})
 
-    
+		const jokeHtml = `<p>Hello there!</p>
+        <p>My name is Chakija Norris. I come from Chakovec and my chakija is ostra.
+          I'm sensing with my Chuck-E senses that you are having a bad day, so here is a funny joke for you!</p>
+          <b>${jokeToSend.value}</b>
+          <p> Best Regards!</p>
+          <p>Chuck</p>`
+
 		await transporter
 			.sendMail({
 				from: process.env.CHUCKSEMAIL,
 				to: typeof email === 'string' ? email : email.email,
 				subject: 'Chuck Norris Joke!',
 				text: 'Please confirm your email!!!',
-				html: `<p>Hello there!</p>
-        <p>My name is Chakija Norris. I come from Chakovec and my chakija is ostra.
-          I'm sensing with my Chuck-E senses that you are having a bad day, so here is a funny joke for you!</p>
-          <b>${jokeToSend.value}</b>
-          <p> Best Regards!</p>
-          <p>Chuck</p>`,
+				html: jokeHtml
 			})
 			.then((success) => {
 				console.log('SUCCESS!', success)
