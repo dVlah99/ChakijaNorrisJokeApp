@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm'
-import { IsEmail } from 'class-validator'
+import { IsEmail, Length } from 'class-validator'
 
 @Entity()
 export class User extends BaseEntity {
@@ -14,9 +14,10 @@ export class User extends BaseEntity {
   	lastName: string
 
     @Column({ unique: true })
-    @IsEmail()
+    @IsEmail(undefined, {always: true, message: 'Please enter a valid email'})
   	email: string
 
     @Column()
+    @Length(8, 20)
   	password: string
 }

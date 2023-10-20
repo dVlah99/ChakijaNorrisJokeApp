@@ -10,7 +10,7 @@ import { UserRefreshToken } from '../Entities/UserRefreshToken'
 export class UserService {
 	private static UserExists(user: UserRefreshToken | User): boolean{
 		if(!user){
-			return false
+			throw new Error('User not found!')
 		}
 
 		return true
@@ -23,7 +23,7 @@ export class UserService {
 		try {
 			const userFromDb = await User.findOne({ where: { email } })
 
-			this.UserExists(userFromDb) ? true : res.status(404).json({ message: 'User not found' })
+			this.UserExists(userFromDb)
 
 			const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
 			if (!isPasswordValid){
@@ -96,28 +96,35 @@ export class UserService {
 				relations: ['user'],
 				where: { refreshToken: refreshTokenFromRequest },
 			})
-
-			this.UserExists(userFromDb) ? true : res.status(404).json({ message: 'User not found' })
+			
+			this.UserExists(userFromDb)
+			
+			if(!userFromDb.refreshToken){
+				res.status(404).json({ message: 'Refresh token for this user not found!' })
+				return false
+			}
 			jwt.verify(
 				userFromDb.refreshToken,
 				process.env.JWT_SECRET_KEY_REFRESH,
 				(error) => {
-					if (error) return res.sendStatus(403)
+					if (error) {
+						res.sendStatus(403)
+						return false
+					}
 					const accessToken = jwt.sign(
 						{ email: userFromDb.user.email },
 						process.env.JWT_SECRET_KEY_ACCESS,
 						{ expiresIn: '30s' }
 					)
+					
 					res.json({ accessToken })
+					return true
 				}
 			)
-			res.status(201).json({ message: 'User created successfully' })
-
 			return true
 		} catch (error) {
 			console.error('Verification error: ', error)
 			res.status(500).json({ message: 'Internal server error' })
-
 		}
 	}
 }
