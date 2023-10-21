@@ -6,6 +6,8 @@ import * as jwt from 'jsonwebtoken'
 import { LoginInput } from '../Inputs/LoginInput'
 import { Response } from 'express'
 import { UserRefreshToken } from '../Entities/UserRefreshToken'
+import { UserValidation } from '../Validators/UserInputValidation'
+import { isObject } from 'class-validator'
 
 export class UserService {
 	private static DoesUserExists(user: UserRefreshToken | User | null): boolean{
@@ -62,24 +64,6 @@ export class UserService {
 		}
 	}
 
-	private static SignUpInputVerification({ firstName, lastName, email, password }: UserSignupInput){
-		if(firstName.length > 5 && firstName.length < 20){
-			throw Error('First name must be between 5 and 20 characters!')
-		}
-
-		if(lastName.length > 3 && lastName.length < 20){
-			throw Error('First name must be between 5 and 20 characters!')
-		}
-
-		if(password.length > 3 && password.length < 20){
-			throw Error('First name must be between 5 and 20 characters!')
-		}
-
-		if(email.length > 3 && email.length < 20){
-			throw Error('First name must be between 5 and 20 characters!')
-		}
-	}
-
 	public static async SignUp (
 		input: UserSignupInput,
 		res: Response
@@ -100,6 +84,7 @@ export class UserService {
 			newUser.lastName = input.lastName
 			newUser.email = input.email
 			newUser.password = hashedPassword
+			await UserValidation.userValidation(newUser)
 
 			await newUser.save()
 
@@ -107,7 +92,11 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			res.status(500).json({ message: 'Error signing up' })
+			if(isObject(error)) {
+				res.status(500).json(JSON.stringify(error, null, 2))
+			} else {
+				res.status(500).json(JSON.stringify(error))
+			}
 		}
 	}
 

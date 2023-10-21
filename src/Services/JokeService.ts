@@ -21,7 +21,7 @@ export class JokeService {
 			return jokeJson
 		} catch (error) {
 			if (error == 'Error: Failed to fetch data!') {
-				res.status(500).json({ message: 'Error while fetching joke' })
+				res.status(400).json({ message: 'Error while fetching joke' })
 			} else if (error == 'Error: Joke not found!') {
 				res.status(404).json({ message: 'Joke not found!' })
 			} else {
