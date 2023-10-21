@@ -8,7 +8,7 @@ import { Response } from 'express'
 import { UserRefreshToken } from '../Entities/UserRefreshToken'
 
 export class UserService {
-	private static UserExists(user: UserRefreshToken | User): boolean{
+	private static DoesUserExists(user: UserRefreshToken | User | null): boolean{
 		if(!user){
 			throw new Error('User not found!')
 		}
@@ -23,23 +23,23 @@ export class UserService {
 		try {
 			const userFromDb = await User.findOne({ where: { email } })
 
-			this.UserExists(userFromDb)
-
+			this.DoesUserExists(userFromDb)
+			
 			const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
-			if (!isPasswordValid){
-				res.status(401).json({ message: 'Invalid password' })
-				return false
-			}
 		
+			if (!isPasswordValid){
+				throw new Error('Invalid password!')
+			}
+			
 			const accessToken = jwt.sign({ email }, process.env.JWT_SECRET_KEY_ACCESS, {
 				expiresIn: '20s',
 			})
-
+			
 			const refreshToken = jwt.sign(email, process.env.JWT_SECRET_KEY_REFRESH)
 			const refreshTokenFromDb = await UserRefreshToken.findOne({
 				where: { refreshToken: refreshToken },
 			})
-
+			
 			if (!refreshTokenFromDb) {
 				const newRefreshToken = new UserRefreshToken()
 				newRefreshToken.id = v4()
@@ -52,32 +52,58 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			console.error('Error logging in:', error)
-			res.status(500).json({ message: 'Internal server error' })
+			console.log('USLI SMO U ERROR: ', error)
+			if(error == 'Error: User not found!'){
+				res.status(404).json({ message: 'User not found!'})
+			} else if (error == 'Error: Invalid password!') {
+				res.status(404).json({ message: 'Invalid password!'})
+			} else {
+				res.status(500).json({ message: 'Internal server error' })
+			}
+		}
+	}
+
+	private static SignUpInputVerification({ firstName, lastName, email, password }: UserSignupInput){
+		if(firstName.length > 5 && firstName.length < 20){
+			throw Error('First name must be between 5 and 20 characters!')
+		}
+
+		if(lastName.length > 3 && lastName.length < 20){
+			throw Error('First name must be between 5 and 20 characters!')
+		}
+
+		if(password.length > 3 && password.length < 20){
+			throw Error('First name must be between 5 and 20 characters!')
+		}
+
+		if(email.length > 3 && email.length < 20){
+			throw Error('First name must be between 5 and 20 characters!')
 		}
 	}
 
 	public static async SignUp (
-		{ firstName, lastName, email, password }: UserSignupInput,
+		input: UserSignupInput,
 		res: Response
 	): Promise<boolean>{
 		try {
-			const userFromDb = await User.findOne({ where: { email } })
+			const userFromDb = await User.findOne({ where: { email: input.email } })
 			if (userFromDb){
 				res.status(400).json({ message: 'User already exists' })
 
 				return false
 			}
 				
-			const hashedPassword = await bcrypt.hash(password, 10)
+			const hashedPassword = await bcrypt.hash(input.password, 10)
 			const newUser = new User()
 
 			newUser.id = v4()
-			newUser.firstName = firstName
-			newUser.lastName = lastName
-			newUser.email = email
+			newUser.firstName = input.firstName
+			newUser.lastName = input.lastName
+			newUser.email = input.email
 			newUser.password = hashedPassword
+
 			await newUser.save()
+
 			res.status(201).json({ message: 'User created successfully' })
 
 			return true
@@ -97,7 +123,7 @@ export class UserService {
 				where: { refreshToken: refreshTokenFromRequest },
 			})
 			
-			this.UserExists(userFromDb)
+			this.DoesUserExists(userFromDb)
 			
 			if(!userFromDb.refreshToken){
 				res.status(404).json({ message: 'Refresh token for this user not found!' })

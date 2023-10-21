@@ -22,8 +22,8 @@ const test: DataSourceOptions = {
 const port = process.env.PORT || 8000
 
 createConnection(test)
-	.then((connection) => {
-		console.log('Connected to the database: ', connection)
+	.then(() => {
+		console.log('Connected to the database: ')
 	})
 	.catch((error) => {
 		console.error('Error connecting to the database:', error)

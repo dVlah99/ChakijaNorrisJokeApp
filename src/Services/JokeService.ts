@@ -7,10 +7,18 @@ export class JokeService {
 	private static async getJoke(res: Response): Promise<JokeType>   {
 		try {
 			const jokeResponse = await fetch('https://api.chucknorris.io/jokes/random')
+
 			if (!jokeResponse) {
 				throw new Error('Failed to fetch data')
 			}
+
 			const jokeJson = (await jokeResponse.json()) as JokeType
+
+			if(!jokeJson.value){
+				res.status(404).json({ message: 'Joke not found!' })
+				throw new Error('Joke not found!')
+			}
+
 			return jokeJson
 		} catch (error) {
 			console.error('Error logging in:', error)
@@ -34,7 +42,8 @@ export class JokeService {
 	public static async SendJokeToEmail(res: Response, req: Request): Promise<boolean>  {
 		try {
 			const jokeToSend = await this.getJoke(res)
-			const email = await <string | jwt.JwtPayload>this.extractEmailFromToken(req, res)
+
+			const email = await this.extractEmailFromToken(req, res)
 
 			const transporter = nodeMailer.createTransport({
 				secure: false,
@@ -61,14 +70,9 @@ export class JokeService {
 					text: 'Please confirm your email!!!',
 					html: jokeHtml
 				})
-				.then((success) => {
-					console.log('SUCCESS!', success)
-				})
-				.catch((error) => {
-					console.log('ERROR!', error)
-				})
 
 			res.send(jokeToSend)
+			
 			return true
 		} catch (error) {
 			console.error('Error logging in:', error)
