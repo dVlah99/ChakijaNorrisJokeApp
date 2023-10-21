@@ -9,20 +9,25 @@ export class JokeService {
 			const jokeResponse = await fetch('https://api.chucknorris.io/jokes/random')
 
 			if (!jokeResponse) {
-				throw new Error('Failed to fetch data')
+				throw new Error('Failed to fetch data!')
 			}
 
 			const jokeJson = (await jokeResponse.json()) as JokeType
 
 			if(!jokeJson.value){
-				res.status(404).json({ message: 'Joke not found!' })
 				throw new Error('Joke not found!')
 			}
 
 			return jokeJson
 		} catch (error) {
-			console.error('Error logging in:', error)
-			res.status(500).json({ message: 'Internal server error' })
+			if (error == 'Error: Failed to fetch data!') {
+				res.status(500).json({ message: 'Error while fetching joke' })
+			} else if (error == 'Error: Joke not found!') {
+				res.status(404).json({ message: 'Joke not found!' })
+			} else {
+				res.status(500).json({ message: 'Error while fetching joke' })
+			}
+			
 		}
 	}
 
@@ -34,8 +39,7 @@ export class JokeService {
 	
 			return email
 		} catch (error) {
-			console.error('Error logging in:', error)
-			res.status(500).json({ message: 'Internal server error' })
+			res.status(500).json({ message: 'Email extraction error' })
 		}
 	}
 
@@ -72,11 +76,10 @@ export class JokeService {
 				})
 
 			res.send(jokeToSend)
-			
+
 			return true
 		} catch (error) {
-			console.error('Error logging in:', error)
-			res.status(500).json({ message: 'Internal server error' })
+			res.status(500).json({ message: 'Error sending joke!' })
 		}
 	}
 }
