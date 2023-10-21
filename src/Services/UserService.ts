@@ -52,8 +52,7 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			console.log('USLI SMO U ERROR: ', error)
-			if(error == 'Error: User not found!'){
+			if(error == 'Error: User not found!') {
 				res.status(404).json({ message: 'User not found!'})
 			} else if (error == 'Error: Invalid password!') {
 				res.status(404).json({ message: 'Invalid password!'})
@@ -92,7 +91,7 @@ export class UserService {
 
 				return false
 			}
-				
+			
 			const hashedPassword = await bcrypt.hash(input.password, 10)
 			const newUser = new User()
 
@@ -108,8 +107,7 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			console.error('Error signing up:', error)
-			res.status(500).json({ message: 'Internal server error' })
+			res.status(500).json({ message: 'Error signing up' })
 		}
 	}
 
@@ -125,10 +123,6 @@ export class UserService {
 			
 			this.DoesUserExists(userFromDb)
 			
-			if(!userFromDb.refreshToken){
-				res.status(404).json({ message: 'Refresh token for this user not found!' })
-				return false
-			}
 			jwt.verify(
 				userFromDb.refreshToken,
 				process.env.JWT_SECRET_KEY_REFRESH,
@@ -147,10 +141,14 @@ export class UserService {
 					return true
 				}
 			)
+
 			return true
 		} catch (error) {
-			console.error('Verification error: ', error)
-			res.status(500).json({ message: 'Internal server error' })
+			if(error == 'Error: User not found!') {
+				res.status(404).json({ message: 'User not found!'})
+			} else {
+				res.status(500).json({ message: 'Internal server error' })
+			}
 		}
 	}
 }
