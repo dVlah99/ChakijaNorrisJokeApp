@@ -9,13 +9,13 @@ import { UserRefreshToken } from '../Entities/UserRefreshToken'
 import { UserValidation } from '../Validators/UserInputValidation'
 
 export class UserService {
-	private static DoesUserExists(user: UserRefreshToken | User | null): boolean{
-		if(!user){
-			throw new Error('User not found!')
+	private static DoesUserExist(user: UserRefreshToken | User | null, res: Response): boolean {
+		if (!user) {
+			res.status(404).json({ message: 'User not found!'})
+			return false
 		}
-
 		return true
-	} 
+	}
 
 	public static async Login (
 		{ email, password }: LoginInput,
@@ -24,12 +24,15 @@ export class UserService {
 		try {
 			const userFromDb = await User.findOne({ where: { email } })
 
-			this.DoesUserExists(userFromDb)
+			if(!this.DoesUserExist(userFromDb, res)){
+				return false
+			}
 			
 			const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
 		
 			if (!isPasswordValid){
-				throw new Error('Invalid password!')
+				res.status(404).json({ message: 'Invalid password!'})
+				return false
 			}
 			
 			const accessToken = jwt.sign({ email }, process.env.JWT_SECRET_KEY_ACCESS, {
@@ -53,13 +56,7 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			if(error == 'Error: User not found!') {
-				res.status(404).json({ message: 'User not found!'})
-			} else if (error == 'Error: Invalid password!') {
-				res.status(404).json({ message: 'Invalid password!'})
-			} else {
-				res.status(500).json({ message: 'Internal server error' })
-			}
+			res.status(500).json({ message: 'Internal server error' })
 		}
 	}
 	
@@ -112,7 +109,7 @@ export class UserService {
 				where: { refreshToken: refreshTokenFromRequest },
 			})
 			
-			this.DoesUserExists(userFromDb)
+			this.DoesUserExist(userFromDb, res)
 			
 			jwt.verify(
 				userFromDb.refreshToken,
@@ -135,11 +132,7 @@ export class UserService {
 
 			return true
 		} catch (error) {
-			if(error == 'Error: User not found!') {
-				res.status(404).json({ message: 'User not found!'})
-			} else {
-				res.status(500).json({ message: 'Internal server error' })
-			}
+			res.status(500).json({ message: 'Internal server error' })
 		}
 	}
 }
