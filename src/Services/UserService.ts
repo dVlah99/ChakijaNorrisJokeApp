@@ -109,7 +109,9 @@ export class UserService {
 				where: { refreshToken: refreshTokenFromRequest },
 			})
 			
-			this.DoesUserExist(userFromDb, res)
+			if(!this.DoesUserExist(userFromDb, res)){
+				return false
+			}
 			
 			jwt.verify(
 				userFromDb.refreshToken,
