@@ -7,11 +7,15 @@ import { LoginInput } from '../Inputs/LoginInput'
 import { Response } from 'express'
 import { UserRefreshToken } from '../Entities/UserRefreshToken'
 import { UserValidation } from '../Validators/UserInputValidation'
+import { UserExistsError } from '../Errors/UserExistsError'
+import { UserSignUpValidationError } from '../Errors/UserSignUpValidationError'
+import { UserDoesNotExistsError } from '../Errors/UserDoesNotExistError'
+import { Tokens } from '../Types/2faTokens'
+import { InvalidPasswordError } from '../Errors/InvalidPasswordError'
 
 export class UserService {
-	private static DoesUserExist(user: UserRefreshToken | User | null, res: Response): boolean {
+	private static DoesUserExist(user: UserRefreshToken | User | null): boolean {
 		if (!user) {
-			res.status(404).json({ message: 'User not found!'})
 			return false
 		}
 		return true
@@ -19,20 +23,18 @@ export class UserService {
 
 	public static async Login (
 		{ email, password }: LoginInput,
-		res: Response
-	): Promise<boolean> {
+	): Promise<Tokens | Error> {
 		try {
 			const userFromDb = await User.findOne({ where: { email } })
 
-			if(!this.DoesUserExist(userFromDb, res)){
-				return false
+			if(!this.DoesUserExist(userFromDb)){
+				return new UserDoesNotExistsError('User does not exist')
 			}
 			
 			const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
 		
 			if (!isPasswordValid){
-				res.status(404).json({ message: 'Invalid password!'})
-				return false
+				return new InvalidPasswordError('Invalid password!')
 			}
 			
 			const accessToken = jwt.sign({ email }, process.env.JWT_SECRET_KEY_ACCESS, {
@@ -52,25 +54,28 @@ export class UserService {
 
 				await newRefreshToken.save()
 			}
-			res.status(201).json({ accessToken, refreshToken })
 
-			return true
+			const tokens: Tokens = {
+				accessToken: accessToken,
+				refreshToken: refreshToken
+			}
+
+			return tokens
 		} catch (error) {
-			res.status(500).json({ message: 'Internal server error' })
+			return new Error( error ) 
 		}
 	}
 	
 	public static async SignUp (
 		input: UserSignupInput,
-		res: Response
-	): Promise<boolean> {
+	): Promise<User | Error> {
 		try {
 			const userFromDb = await User.findOne({ where: { email: input.email } })
-			if (userFromDb) {
-				res.status(400).json({ message: 'User already exists' })
-				return false
-			}
 	
+			if (userFromDb) {
+				return new UserExistsError('User exists')
+			}
+
 			const hashedPassword = await bcrypt.hash(input.password, 10)
 			const newUser = new User()
 	
@@ -81,20 +86,18 @@ export class UserService {
 			newUser.password = input.password
 	
 			const errorList = await UserValidation.validateUserInput(newUser)
-		
+
 			if (!errorList.isValid) {
-				res.status(400).json({ message: 'Validation failed', errors: errorList.errors })
-				return false
+				return new UserSignUpValidationError('Validation failed', errorList.errors)
 			}
 	
 			newUser.password = hashedPassword
+
 			await newUser.save()
 	
-			res.status(201).json({ message: 'User created successfully' })
-			return true
+			return newUser
 		} catch (error) {
-			res.status(500).json({ message: 'Internal server error', error: error.message })
-			return false
+			return new Error( error ) 
 		}
 	}
 	
@@ -102,15 +105,16 @@ export class UserService {
 	public static async Token (
 		res: Response,
 		refreshTokenFromRequest: string
-	): Promise<boolean> {
+	): Promise<{accessToken: string} | Error> {
+		let accessTokenRet: string = ''
 		try {
 			const userFromDb = await UserRefreshToken.findOne({
 				relations: ['user'],
 				where: { refreshToken: refreshTokenFromRequest },
 			})
 			
-			if(!this.DoesUserExist(userFromDb, res)){
-				return false
+			if(!this.DoesUserExist(userFromDb)){
+				return new UserDoesNotExistsError('User does not exist')
 			}
 			
 			jwt.verify(
@@ -126,13 +130,11 @@ export class UserService {
 						process.env.JWT_SECRET_KEY_ACCESS,
 						{ expiresIn: '30s' }
 					)
-					
-					res.json({ accessToken })
-					return true
+					accessTokenRet = accessToken
 				}
 			)
 
-			return true
+			return {accessToken: accessTokenRet}
 		} catch (error) {
 			res.status(500).json({ message: 'Internal server error' })
 		}

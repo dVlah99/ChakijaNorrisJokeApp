@@ -40,12 +40,14 @@ app.get('/sendAJoke', authToken, async (req: Request, res: Response) => {
 //POST
 app.post('/signup', async (req, res) => {
 	const { firstName, lastName, email, password } = req.body
-	await UserService.SignUp({ firstName, lastName, email, password }, res)
+	const results = await UserService.SignUp({ firstName, lastName, email, password })
+	CheckResults(results, res)
 })
 
 app.post('/login', async (req, res) => {
 	const { email, password } = req.body
-	await UserService.Login({ email, password }, res)
+	const results = await UserService.Login({ email, password })
+	CheckResults(results, res)
 })
 
 app.post('/token', async (req, res) => {
@@ -57,7 +59,8 @@ app.post('/token', async (req, res) => {
 	})
 	if (!refreshTokenFromDb) return res.sendStatus(401)
 
-	await UserService.Token(res, refreshToken)
+	const results = await UserService.Token(res, refreshToken)
+	CheckResults(results, res)
 })
 
 //MIDDLEWARE
@@ -78,3 +81,11 @@ function authToken(req, res, next) {
 app.listen(port, () => {
 	console.log(`Server is Fire at http://localhost:${port}`)
 })
+
+function CheckResults(results: unknown, res: Response){
+	if(results instanceof Error){
+		res.status(500).json({ results })
+	} else {
+		res.status(201).json({ results })
+	}
+}
