@@ -4,7 +4,6 @@ import { UserSignupInput } from '../Inputs/UserSignupInput'
 import { v4 } from 'uuid'
 import * as jwt from 'jsonwebtoken'
 import { LoginInput } from '../Inputs/LoginInput'
-import { Response } from 'express'
 import { UserRefreshToken } from '../Entities/UserRefreshToken'
 import { UserValidation } from '../Validators/UserInputValidation'
 import { UserExistsError } from '../Errors/UserExistsError'
@@ -103,7 +102,6 @@ export class UserService {
 	
 
 	public static async Token (
-		res: Response,
 		refreshTokenFromRequest: string
 	): Promise<{accessToken: string} | Error> {
 		let accessTokenRet: string = ''
@@ -122,8 +120,7 @@ export class UserService {
 				process.env.JWT_SECRET_KEY_REFRESH,
 				(error) => {
 					if (error) {
-						res.sendStatus(403)
-						return false
+						return new Error('Token error')
 					}
 					const accessToken = jwt.sign(
 						{ email: userFromDb.user.email },
@@ -136,7 +133,7 @@ export class UserService {
 
 			return {accessToken: accessTokenRet}
 		} catch (error) {
-			res.status(500).json({ message: 'Internal server error' })
+			return new Error(error)
 		}
 	}
 }

@@ -1,37 +1,30 @@
-import { Request, Response } from 'express'
+import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import * as nodeMailer from 'nodemailer'
 import { JokeType } from '../Types/JokeType'
 
 export class JokeService {
-	private static async getJoke(res: Response): Promise<JokeType>   {
+	private static async getJoke(): Promise<JokeType | null>   {
 		try {
 			const jokeResponse = await fetch('https://api.chucknorris.io/jokes/random')
 
 			if (!jokeResponse) {
-				throw new Error('Failed to fetch data!')
+				return null
 			}
 
 			const jokeJson = (await jokeResponse.json()) as JokeType
 
 			if(!jokeJson.value){
-				throw new Error('Joke not found!')
+				return null
 			}
 
 			return jokeJson
 		} catch (error) {
-			if (error == 'Error: Failed to fetch data!') {
-				res.status(400).json({ message: 'Error while fetching joke' })
-			} else if (error == 'Error: Joke not found!') {
-				res.status(404).json({ message: 'Joke not found!' })
-			} else {
-				res.status(500).json({ message: 'Error while fetching joke' })
-			}
-			
+			return null
 		}
 	}
 
-	private static async extractEmailFromToken(req: Request, res: Response): Promise<string | jwt.JwtPayload>  {
+	private static async extractEmailFromToken(req: Request): Promise<string | jwt.JwtPayload | null>  {
 		try {
 			const authHeader = req.headers['authorization']
 			const token = authHeader && authHeader.split(' ')[1]
@@ -39,16 +32,18 @@ export class JokeService {
 	
 			return email
 		} catch (error) {
-			res.status(500).json({ message: 'Email extraction error' })
+			return new Error(error)
 		}
 	}
 
-	public static async SendJokeToEmail(res: Response, req: Request): Promise<boolean>  {
+	public static async SendJokeToEmail(req: Request): Promise<JokeType | Error>  {
 		try {
-			const jokeToSend = await this.getJoke(res)
-
-			const email = await this.extractEmailFromToken(req, res)
-
+			const jokeToSend = await this.getJoke()
+			console.log('proslo 1')
+			if(!jokeToSend) return new Error('Problem while fetching joke')
+			console.log('proslo 2')
+			const email = await this.extractEmailFromToken(req)
+			console.log('proslo 3')
 			const transporter = nodeMailer.createTransport({
 				secure: false,
 				host: 'smtp.office365.com',
@@ -58,7 +53,7 @@ export class JokeService {
 					pass: process.env.CHUCKSPASS,
 				},
 			})
-
+			console.log('proslo 4')
 			const jokeHtml = `<p>Hello there!</p>
 					<p>My name is Chakija Norris. I come from Chakovec and my chakija is ostra.
 					I'm sensing with my Chuck-E senses that you are having a bad day, so here is a funny joke for you!</p>
@@ -75,11 +70,9 @@ export class JokeService {
 					html: jokeHtml
 				})
 
-			res.send(jokeToSend)
-
-			return true
+			return jokeToSend
 		} catch (error) {
-			res.status(500).json({ message: 'Error sending joke!' })
+			return new Error(error)
 		}
 	}
 }

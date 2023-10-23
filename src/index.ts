@@ -34,7 +34,9 @@ app.use(bodyParser.json())
 
 //GET
 app.get('/sendAJoke', authToken, async (req: Request, res: Response) => {
-	JokeService.SendJokeToEmail(res, req)
+	const results = await JokeService.SendJokeToEmail(req)
+	console.log('RES: ',results)
+	CheckResults(results, res)
 })
 
 //POST
@@ -59,7 +61,7 @@ app.post('/token', async (req, res) => {
 	})
 	if (!refreshTokenFromDb) return res.sendStatus(401)
 
-	const results = await UserService.Token(res, refreshToken)
+	const results = await UserService.Token(refreshToken)
 	CheckResults(results, res)
 })
 
