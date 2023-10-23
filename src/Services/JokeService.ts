@@ -39,11 +39,10 @@ export class JokeService {
 	public static async SendJokeToEmail(req: Request): Promise<JokeType | Error>  {
 		try {
 			const jokeToSend = await this.getJoke()
-			console.log('proslo 1')
 			if(!jokeToSend) return new Error('Problem while fetching joke')
-			console.log('proslo 2')
+
 			const email = await this.extractEmailFromToken(req)
-			console.log('proslo 3')
+
 			const transporter = nodeMailer.createTransport({
 				secure: false,
 				host: 'smtp.office365.com',
@@ -53,7 +52,7 @@ export class JokeService {
 					pass: process.env.CHUCKSPASS,
 				},
 			})
-			console.log('proslo 4')
+
 			const jokeHtml = `<p>Hello there!</p>
 					<p>My name is Chakija Norris. I come from Chakovec and my chakija is ostra.
 					I'm sensing with my Chuck-E senses that you are having a bad day, so here is a funny joke for you!</p>

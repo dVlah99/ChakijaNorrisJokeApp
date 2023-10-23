@@ -35,7 +35,6 @@ app.use(bodyParser.json())
 //GET
 app.get('/sendAJoke', authToken, async (req: Request, res: Response) => {
 	const results = await JokeService.SendJokeToEmail(req)
-	console.log('RES: ',results)
 	CheckResults(results, res)
 })
 

@@ -54,12 +54,10 @@ export class UserService {
 				await newRefreshToken.save()
 			}
 
-			const tokens: Tokens = {
+			return {
 				accessToken: accessToken,
-				refreshToken: refreshToken
+				refreshToken: refreshToken,
 			}
-
-			return tokens
 		} catch (error) {
 			return new Error( error ) 
 		}
