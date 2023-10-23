@@ -1,33 +1,30 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm'
-import { IsEmail, Length } from 'class-validator'
-import { UserSignupInput } from '../Inputs/UserSignupInput'
+import { IsEmail, Length, IsDefined } from 'class-validator'
 
 
 @Entity()
 export class User extends BaseEntity {
-/* 	constructor(input: UserSignupInput){
-		super()
-		this.firstName = input.firstName
-		this.lastName = input.lastName
-		this.email = input.email
-		this.password = input.password
-	} */
-
     @PrimaryGeneratedColumn('uuid')
   	id: string
 
-    @Column()
-  	firstName: string
+    @Column({nullable: false})
+	@Length(3, 20)
+	@IsDefined()
+  	firstName!: string
 
-    @Column()
-  	lastName: string
+	@Column({nullable: false})
+	@Length(3, 20)
+	@IsDefined()
+  	lastName!: string
 
-    @Column({ unique: true })
+    @Column({ unique: true, nullable: false })
     @IsEmail(undefined, {always: true, message: 'Please enter a valid email'})
-  	email: string
+	@IsDefined()
+  	email!: string
 
-    @Column()
+	@Column({nullable: false})
     @Length(8, 20)
-  	password: string
+	@IsDefined()
+  	password!: string
 }

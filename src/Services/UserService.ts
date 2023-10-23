@@ -7,7 +7,6 @@ import { LoginInput } from '../Inputs/LoginInput'
 import { Response } from 'express'
 import { UserRefreshToken } from '../Entities/UserRefreshToken'
 import { UserValidation } from '../Validators/UserInputValidation'
-import { isObject } from 'class-validator'
 
 export class UserService {
 	private static DoesUserExists(user: UserRefreshToken | User | null): boolean{
@@ -63,42 +62,45 @@ export class UserService {
 			}
 		}
 	}
-
+	
 	public static async SignUp (
 		input: UserSignupInput,
 		res: Response
-	): Promise<boolean>{
+	): Promise<boolean> {
 		try {
 			const userFromDb = await User.findOne({ where: { email: input.email } })
-			if (userFromDb){
+			if (userFromDb) {
 				res.status(400).json({ message: 'User already exists' })
-
 				return false
 			}
-			
+	
 			const hashedPassword = await bcrypt.hash(input.password, 10)
 			const newUser = new User()
-
+	
 			newUser.id = v4()
 			newUser.firstName = input.firstName
 			newUser.lastName = input.lastName
 			newUser.email = input.email
+			newUser.password = input.password
+	
+			const errorList = await UserValidation.validateUserInput(newUser)
+		
+			if (!errorList.isValid) {
+				res.status(400).json({ message: 'Validation failed', errors: errorList.errors })
+				return false
+			}
+	
 			newUser.password = hashedPassword
-			await UserValidation.userValidation(newUser)
-
 			await newUser.save()
-
+	
 			res.status(201).json({ message: 'User created successfully' })
-
 			return true
 		} catch (error) {
-			if(isObject(error)) {
-				res.status(500).json(JSON.stringify(error, null, 2))
-			} else {
-				res.status(500).json(JSON.stringify(error))
-			}
+			res.status(500).json({ message: 'Internal server error', error: error.message })
+			return false
 		}
 	}
+	
 
 	public static async Token (
 		res: Response,
