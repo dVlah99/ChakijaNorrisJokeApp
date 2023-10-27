@@ -7,6 +7,7 @@ import * as bodyParser from 'body-parser'
 import { UserService } from './Services/UserService'
 import * as jwt from 'jsonwebtoken'
 import { JokeService } from './Services/JokeService'
+import cors from 'cors'
 
 dotenv.config()
 const test: DataSourceOptions = {
@@ -31,6 +32,7 @@ createConnection(test)
 
 const app: Application = express()
 app.use(bodyParser.json())
+app.use(cors())
 
 //GET
 app.get('/sendAJoke', authToken, async (req: Request, res: Response) => {
