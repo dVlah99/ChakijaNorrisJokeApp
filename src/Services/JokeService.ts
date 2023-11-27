@@ -48,8 +48,8 @@ export class JokeService {
 				host: 'smtp.office365.com',
 				debug: true,
 				auth: {
-					user: process.env.CHUCKSEMAIL,
-					pass: process.env.CHUCKSPASS,
+					user: 'ChakijaNorrisVic@outlook.com',
+					pass: 'SmijesniVic123!',
 				},
 			})
 
@@ -62,7 +62,7 @@ export class JokeService {
 
 			await transporter
 				.sendMail({
-					from: process.env.CHUCKSEMAIL,
+					from: 'ChakijaNorrisVic@outlook.com',
 					to: typeof email === 'string' ? email : email?.email,
 					subject: 'Chuck Norris Joke!',
 					text: 'Please confirm your email!!!',

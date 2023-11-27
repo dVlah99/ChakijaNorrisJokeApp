@@ -40,7 +40,7 @@ export class UserService {
 			}
 			console.log('7', userFromDb)
 			try {
-				accessToken = jwt.sign({ email: input.email }, process.env.JWT_SECRET_KEY_ACCESS, {
+				accessToken = jwt.sign({ email: input.email }, 'SIKRETKAMUFLADZICBOSANSKITAJNIAGENT', {
 					expiresIn: '20s',
 				})
 			} catch (error) {
@@ -48,7 +48,7 @@ export class UserService {
 			}
 			console.log('accessToken: ', accessToken)
 			
-			const refreshToken = jwt.sign(input.email, <jwt.Secret>process.env.JWT_SECRET_KEY_REFRESH)
+			const refreshToken = jwt.sign(input.email, <jwt.Secret>'SIKRETKAMUFLADZICBOSANSKITAJNIAGENTTTT')
 
 			const refreshTokenFromDb = await UserRefreshToken.findOne({
 				where: { refreshToken: refreshToken },
@@ -134,14 +134,14 @@ export class UserService {
 			
 			jwt.verify(
 				<string>userFromDb?.refreshToken,
-				<jwt.Secret>process.env.JWT_SECRET_KEY_REFRESH,
+				<jwt.Secret>'SIKRETKAMUFLADZICBOSANSKITAJNIAGENTTTT',
 				(error) => {
 					if (error) {
 						return new Error('Token error')
 					}
 					const accessToken = jwt.sign(
 						{ email: userFromDb?.user.email },
-						<jwt.Secret>process.env.JWT_SECRET_KEY_ACCESS,
+						<jwt.Secret>'SIKRETKAMUFLADZICBOSANSKITAJNIAGENT',
 						{ expiresIn: '30s' }
 					)
 					accessTokenRet = accessToken

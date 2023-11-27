@@ -31,9 +31,9 @@ pool.query('SELECT * FROM public."user"', (err, res) => {
 dotenv.config()
 const test: DataSourceOptions = {
 	type: 'postgres',
-	password: process.env.DBPASSWORD,
+	password: 'postgres',
 	host: '34.34.14.93',
-	database: process.env.DATABASE,
+	database: 'norris',
 	port: parseInt(process.env.DBPORT || '5432', 10),
 	username: process.env.USERNAME,
 	synchronize: true,
@@ -96,7 +96,7 @@ function authToken(req: Request, res: Response, next: NextFunction) {
 
 	if (!token) return res.sendStatus(401)
 
-	jwt.verify(token, <jwt.Secret>process.env.JWT_SECRET_KEY_ACCESS, (error, user) => {
+	jwt.verify(token, <jwt.Secret>'SIKRETKAMUFLADZICBOSANSKITAJNIAGENT', (error, user) => {
 		if (error) return res.sendStatus(403)
 	
 		req.user = user
