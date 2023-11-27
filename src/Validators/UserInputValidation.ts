@@ -1,8 +1,10 @@
+import 'reflect-metadata'
 import { User } from '../Entities/User'
 import { validate } from 'class-validator'
+import { LoginInput } from '../Inputs/LoginInput'
 
 export class UserValidation{
-	static async validateUserInput(userInput: User): Promise<{ errors: Record<string, string[]> | null, isValid: boolean }> {
+	static async validateUserInput(userInput: User | LoginInput): Promise<{ errors: Record<string, string[]> | null, isValid: boolean }> {
 		const errors: Record<string, string[]> = {}
 		const validationErrors = await validate(userInput)
 		
@@ -11,7 +13,6 @@ export class UserValidation{
 				const { property, constraints } = error
 				errors[property] = Object.values(constraints || {})
 			})
-
 			return { errors, isValid: false }
 		}
 	

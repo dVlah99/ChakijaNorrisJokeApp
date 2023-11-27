@@ -1,16 +1,17 @@
-import { User } from '../Entities/User'
+import 'reflect-metadata'
+import { User } from '../Entities/User.js'
 import * as bcrypt from 'bcrypt'
-import { UserSignupInput } from '../Inputs/UserSignupInput'
+import { UserSignupInput } from '../Inputs/UserSignupInput.js'
 import { v4 } from 'uuid'
-import * as jwt from 'jsonwebtoken'
-import { LoginInput } from '../Inputs/LoginInput'
-import { UserRefreshToken } from '../Entities/UserRefreshToken'
-import { UserValidation } from '../Validators/UserInputValidation'
-import { UserExistsError } from '../Errors/UserExistsError'
-import { UserSignUpValidationError } from '../Errors/UserSignUpValidationError'
-import { UserDoesNotExistsError } from '../Errors/UserDoesNotExistError'
-import { Tokens } from '../Types/2faTokens'
-import { InvalidPasswordError } from '../Errors/InvalidPasswordError'
+import jwt from 'jsonwebtoken'
+import { LoginInput } from '../Inputs/LoginInput.js'
+import { UserRefreshToken } from '../Entities/UserRefreshToken.js'
+import { UserValidation } from '../Validators/UserInputValidation.js'
+import { UserExistsError } from '../Errors/UserExistsError.js'
+import { UserSignUpValidationError } from '../Errors/UserSignUpValidationError.js'
+import { UserDoesNotExistsError } from '../Errors/UserDoesNotExistError.js'
+import { Tokens } from '../Types/2faTokens.js'
+import { InvalidPasswordError } from '../Errors/InvalidPasswordError.js'
 
 export class UserService {
 	private static DoesUserExist(user: UserRefreshToken | User | null): boolean {
@@ -21,35 +22,43 @@ export class UserService {
 	}
 
 	public static async Login (
-		{ email, password }: LoginInput,
+		input: LoginInput,
 	): Promise<Tokens | Error> {
 		try {
-			const userFromDb = await User.findOne({ where: { email } })
-
+			let accessToken 
+			const errorList = await UserValidation.validateUserInput(input)
+			if (!errorList.isValid && errorList.errors !== null) {
+				return new UserSignUpValidationError('Validation failed', errorList.errors)
+			}
+			const userFromDb = await User.findOne({ where: { email: input.email } })
 			if(!this.DoesUserExist(userFromDb)){
 				return new UserDoesNotExistsError('User does not exist')
 			}
-			
-			const isPasswordValid = await bcrypt.compare(password, userFromDb.password)
-		
+			const isPasswordValid = await bcrypt.compare(input.password, <string>userFromDb?.password)
 			if (!isPasswordValid){
 				return new InvalidPasswordError('Invalid password!')
 			}
+			console.log('7', userFromDb)
+			try {
+				accessToken = jwt.sign({ email: input.email }, process.env.JWT_SECRET_KEY_ACCESS, {
+					expiresIn: '20s',
+				})
+			} catch (error) {
+				console.log(error)
+			}
+			console.log('accessToken: ', accessToken)
 			
-			const accessToken = jwt.sign({ email }, process.env.JWT_SECRET_KEY_ACCESS, {
-				expiresIn: '20s',
-			})
-			
-			const refreshToken = jwt.sign(email, process.env.JWT_SECRET_KEY_REFRESH)
+			const refreshToken = jwt.sign(input.email, <jwt.Secret>process.env.JWT_SECRET_KEY_REFRESH)
+
 			const refreshTokenFromDb = await UserRefreshToken.findOne({
 				where: { refreshToken: refreshToken },
 			})
-			
+
 			if (!refreshTokenFromDb) {
 				const newRefreshToken = new UserRefreshToken()
 				newRefreshToken.id = v4()
 				newRefreshToken.refreshToken = refreshToken
-				newRefreshToken.userId = userFromDb.id
+				newRefreshToken.userId = <string>userFromDb?.id
 
 				await newRefreshToken.save()
 			}
@@ -59,7 +68,17 @@ export class UserService {
 				refreshToken: refreshToken,
 			}
 		} catch (error) {
-			return new Error( error ) 
+			return new Error( <string>error ) 
+		}
+	}
+
+	private static validateLogInInput(input: LoginInput){
+		console.log(input)
+		if(!input){
+			return false
+		}
+		if(input.email === undefined || input.password === undefined){
+			return false
 		}
 	}
 	
@@ -84,7 +103,7 @@ export class UserService {
 	
 			const errorList = await UserValidation.validateUserInput(newUser)
 
-			if (!errorList.isValid) {
+			if (!errorList.isValid && errorList.errors !== null) {
 				return new UserSignUpValidationError('Validation failed', errorList.errors)
 			}
 	
@@ -94,7 +113,7 @@ export class UserService {
 	
 			return newUser
 		} catch (error) {
-			return new Error( error ) 
+			return new Error( <string>error ) 
 		}
 	}
 	
@@ -114,15 +133,15 @@ export class UserService {
 			}
 			
 			jwt.verify(
-				userFromDb.refreshToken,
-				process.env.JWT_SECRET_KEY_REFRESH,
+				<string>userFromDb?.refreshToken,
+				<jwt.Secret>process.env.JWT_SECRET_KEY_REFRESH,
 				(error) => {
 					if (error) {
 						return new Error('Token error')
 					}
 					const accessToken = jwt.sign(
-						{ email: userFromDb.user.email },
-						process.env.JWT_SECRET_KEY_ACCESS,
+						{ email: userFromDb?.user.email },
+						<jwt.Secret>process.env.JWT_SECRET_KEY_ACCESS,
 						{ expiresIn: '30s' }
 					)
 					accessTokenRet = accessToken
@@ -131,7 +150,7 @@ export class UserService {
 
 			return {accessToken: accessTokenRet}
 		} catch (error) {
-			return new Error(error)
+			return new Error( <string>error )
 		}
 	}
 }

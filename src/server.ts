@@ -1,26 +1,45 @@
-import express, { Request, Response, Application } from 'express'
-import { createConnection, DataSourceOptions } from 'typeorm'
+import 'reflect-metadata'
+import express, { Request, Response, Application, NextFunction } from 'express'
 import dotenv from 'dotenv'
-import { User } from './Entities/User'
-import { UserRefreshToken } from './Entities/UserRefreshToken'
-import * as bodyParser from 'body-parser'
-import { UserService } from './Services/UserService'
-import * as jwt from 'jsonwebtoken'
-import { JokeService } from './Services/JokeService'
+import { UserRefreshToken } from './Entities/UserRefreshToken.js'
+import { UserService } from './Services/UserService.js'
+import jwt from 'jsonwebtoken'
+import { JokeService } from './Services/JokeService.js'
 import cors from 'cors'
+import bodyParser from 'body-parser'
+import { DataSourceOptions, createConnection } from 'typeorm'
+import { User } from './Entities/User.js'
+
+/* const pool = new Pool.Pool({
+	user: 'postgres',
+	host: '35.239.7.0',
+	database: 'norris',
+	password: 'postgres',
+	port: 5432, // default PostgreSQL port
+
+})
+
+pool.query('SELECT * FROM public."user"', (err, res) => {
+	console.log('DATABASE!!!')
+	if (err) {
+		console.error(err)
+	}
+	console.log('DATABASE SUCCESS I GUESS!!!')
+	console.log(res.rows)
+}) */
 
 dotenv.config()
 const test: DataSourceOptions = {
 	type: 'postgres',
 	password: process.env.DBPASSWORD,
-	host: process.env.HOST,
+	host: '34.34.14.93',
 	database: process.env.DATABASE,
 	port: parseInt(process.env.DBPORT || '5432', 10),
 	username: process.env.USERNAME,
 	synchronize: true,
 	entities: [User, UserRefreshToken],
 }
-const port = process.env.PORT || 8000
+const port = process.env.PORT || 8077
 
 createConnection(test)
 	.then(() => {
@@ -38,6 +57,10 @@ app.use(cors())
 app.get('/sendAJoke', authToken, async (req: Request, res: Response) => {
 	const results = await JokeService.SendJokeToEmail(req)
 	CheckResults(results, res)
+})
+
+app.get('/', async (req: Request, res: Response) => {
+	res.send('POZDRAV BRATE')
 })
 
 //POST
@@ -67,16 +90,17 @@ app.post('/token', async (req, res) => {
 })
 
 //MIDDLEWARE
-function authToken(req, res, next) {
+function authToken(req: Request, res: Response, next: NextFunction) {
 	const authHeader = req.headers['authorization']
 	const token = authHeader && authHeader.split(' ')[1]
 
 	if (!token) return res.sendStatus(401)
 
-	jwt.verify(token, process.env.JWT_SECRET_KEY_ACCESS, (error, user) => {
+	jwt.verify(token, <jwt.Secret>process.env.JWT_SECRET_KEY_ACCESS, (error, user) => {
 		if (error) return res.sendStatus(403)
-
+	
 		req.user = user
+
 		next()
 	})
 }

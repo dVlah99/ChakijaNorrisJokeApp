@@ -1,7 +1,7 @@
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import * as nodeMailer from 'nodemailer'
-import { JokeType } from '../Types/JokeType'
+import { JokeType } from '../Types/JokeType.js'
 
 export class JokeService {
 	private static async getJoke(): Promise<JokeType | null>   {
@@ -28,11 +28,11 @@ export class JokeService {
 		try {
 			const authHeader = req.headers['authorization']
 			const token = authHeader && authHeader.split(' ')[1]
-			const email = jwt.decode(token)
+			const email = jwt.decode(<string>token)
 	
 			return email
 		} catch (error) {
-			return new Error(error)
+			return new Error( <string>error )
 		}
 	}
 
@@ -63,7 +63,7 @@ export class JokeService {
 			await transporter
 				.sendMail({
 					from: process.env.CHUCKSEMAIL,
-					to: typeof email === 'string' ? email : email.email,
+					to: typeof email === 'string' ? email : email?.email,
 					subject: 'Chuck Norris Joke!',
 					text: 'Please confirm your email!!!',
 					html: jokeHtml
@@ -71,7 +71,7 @@ export class JokeService {
 
 			return jokeToSend
 		} catch (error) {
-			return new Error(error)
+			return new Error( <string>error )
 		}
 	}
 }

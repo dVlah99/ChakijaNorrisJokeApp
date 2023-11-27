@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 /* eslint-disable no-mixed-spaces-and-tabs */
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm'
 import { IsEmail, Length, IsDefined } from 'class-validator'
@@ -6,7 +7,7 @@ import { IsEmail, Length, IsDefined } from 'class-validator'
 @Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-  	id: string
+  	id!: string
 
     @Column({nullable: false})
 	@Length(3, 20)
@@ -19,7 +20,7 @@ export class User extends BaseEntity {
   	lastName!: string
 
     @Column({ unique: true, nullable: false })
-    @IsEmail(undefined, {always: true, message: 'Please enter a valid email'})
+    @IsEmail({}, { always: true, message: 'Please enter a valid email' })
 	@IsDefined()
   	email!: string
 

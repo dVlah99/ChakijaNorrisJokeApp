@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 /* eslint-disable no-mixed-spaces-and-tabs */
 import {
 	Entity,
@@ -7,20 +8,20 @@ import {
 	OneToOne,
 	JoinColumn,
 } from 'typeorm'
-import { User } from './User'
+import { User } from './User.js'
 
 @Entity()
 export class UserRefreshToken extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-  	id: string
+  	id!: string
 
     @Column()
-  	refreshToken: string
+  	refreshToken!: string
 
     @Column({ unique: true })
-  	userId: string
+  	userId!: string
 
     @OneToOne(() => User)
     @JoinColumn()
-  	user: User
+  	user!: User
 }
