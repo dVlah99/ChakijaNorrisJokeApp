@@ -35,7 +35,7 @@ const test: DataSourceOptions = {
 	host: '34.34.14.93',
 	database: 'norris',
 	port: parseInt(process.env.DBPORT || '5432', 10),
-	username: process.env.USERNAME,
+	username: 'postgres',
 	synchronize: true,
 	entities: [User, UserRefreshToken],
 }
